@@ -35,9 +35,18 @@ const prompt = `
   console.log('🔍 OpenAI Response:', data); // Log for debugging
 
   if (!response.ok) {
-    return NextResponse.json({ result: `Error: ${data.error?.message || 'Unknown error'}` });
+    console.error("❌ OpenAI API error:", data.error?.message || data);
+    return NextResponse.json({ result: `Error: ${data.error?.message || 'Unknown error'}` }, { status: 500 });
   }
 
-  const result = data.choices?.[0]?.message?.content || 'No response from AI.';
+  // Extract result
+  const result = data.choices?.[0]?.message?.content;
+
+  if (!result) {
+    console.error("❌ No content from OpenAI");
+    return NextResponse.json({ result: null }, { status: 500 });
+  }
+
+  // Success: return the content
   return NextResponse.json({ result });
 }
