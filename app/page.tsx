@@ -80,7 +80,7 @@ export default function Home() {
           <select
             value={tone}
             onChange={(e) => setTone(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
+            className="w-full p-2 border rounded mb-4 bg-black"
           >
             <option value="Friendly">Friendly</option>
             <option value="Formal">Formal</option>
@@ -95,7 +95,7 @@ export default function Home() {
           <select
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
+            className="w-full p-2 border rounded mb-4 bg-black"
           >
             <option value="">General</option>
             <option value="Real Estate">Real Estate</option>
