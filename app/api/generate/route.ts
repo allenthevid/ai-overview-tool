@@ -2,17 +2,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { keyword } = await req.json();
+  const { keyword, tone, industry } = await req.json();
 
-  const prompt = `
-You are an expert SEO copywriter. Write a concise, Google AI Overview–optimized blog post for the topic: "${keyword}".
+const prompt = `
+    You are an expert SEO copywriter${industry ? ` specializing in the ${industry} industry` : ''}.
+    Write a ${tone?.toLowerCase() || 'friendly'}, concise, Google AI Overview–optimized blog post for the topic: "${keyword}".
 
-Instructions:
-- Start with a direct summary (1–2 sentences)
-- Use subheadings (H2) and bullet points
-- Write clearly and factually
-- End with a final summary
-`;
+    Instructions:
+    - Start with a direct summary (1–2 sentences)
+    - Use subheadings (H2) and bullet points
+    - Write clearly and factually using terminology appropriate to ${industry || 'general audiences'}
+    - End with a final summary
+    `;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
