@@ -5,10 +5,30 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(false);
+  
   const [keyword, setKeyword] = useState('');
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [tone, setTone] = useState('Friendly');
+  const [industry, setIndustry] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(output);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleExport = () => {
+    const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${keyword || 'ai-content'}.txt`;
+    link.click();
+  };
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -18,11 +38,12 @@ export default function Home() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keyword }),
+        body: JSON.stringify({ keyword, tone, industry }),
       });
 
       const data = await res.json();
       setOutput(data.result);
+      setError('');
     } catch (err) {
       console.error('Error generating content:', err);
       setOutput('Something went wrong.');
@@ -43,18 +64,110 @@ export default function Home() {
         onChange={(e) => setKeyword(e.target.value)}
       />
 
+      {/* 🔘 Advanced Settings Toggle */}
       <button
-        onClick={handleGenerate}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-        disabled={loading}
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="text-sm text-blue-600 underline mb-2"
       >
-        {loading ? 'Generating...' : 'Generate'}
+        {showAdvanced ? 'Hide' : 'Show'} Advanced Settings
       </button>
 
-      {output && (
-        <div className="mt-6 whitespace-pre-wrap bg-gray-100 p-4 rounded text-black">
-          {output}
+      {/* 🏭 Industry Selector */}
+      {showAdvanced && (
+        <>
+          {/* 🎙️ Tone Selector */}
+          <label className="block mb-2 font-semibold">Select Tone:</label>
+          <select
+            value={tone}
+            onChange={(e) => setTone(e.target.value)}
+            className="w-full p-2 border rounded mb-4"
+          >
+            <option value="Friendly">Friendly</option>
+            <option value="Formal">Formal</option>
+            <option value="Professional">Professional</option>
+            <option value="Technical">Technical</option>
+            <option value="Persuasive">Persuasive</option>
+            <option value="Conversational">Conversational</option>
+          </select>
+
+          {/* 🏭 Industry Selector */}
+          <label className="block mb-2 font-semibold">Select Industry:</label>
+          <select
+            value={industry}
+            onChange={(e) => setIndustry(e.target.value)}
+            className="w-full p-2 border rounded mb-4"
+          >
+            <option value="">General</option>
+            <option value="Real Estate">Real Estate</option>
+            <option value="Finance">Finance</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="E-commerce">E-commerce</option>
+            <option value="Technology">Technology</option>
+            <option value="Education">Education</option>
+          </select>
+        </>
+      )}
+
+      <button
+        onClick={handleGenerate}
+        className="bg-blue-600 text-white px-4 py-2 rounded w-full"
+        disabled={loading}
+  >
+        {loading ? (
+          <span className="flex items-center justify-center">
+            <svg
+              className="animate-spin mr-2 h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              ></path>
+            </svg>
+            Generating...
+          </span>
+        ) : (
+          'Generate'
+        )}
+      </button>
+
+      {error && (
+        <div className="mt-4 text-red-500 bg-red-100 p-2 rounded">
+          {error}
         </div>
+      )}
+      {output && (
+        <>
+          <div className="mt-6 whitespace-pre-wrap bg-gray-100 p-4 rounded text-black">
+            {output}
+          </div>
+
+          <button
+            className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+            onClick={() => {
+              const blob = new Blob([output], { type: 'text/plain' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `${keyword || 'ai-content'}.txt`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+          >
+            Export to .txt
+          </button>
+        </>
       )}
     </main>
   );
