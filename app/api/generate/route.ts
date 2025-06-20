@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(req: NextRequest) {
   const { keyword, tone, industry } = await req.json();
 
+  console.log("📩 Received POST data:", keyword, tone);
+
+
+
 const prompt = `
     You are an expert SEO copywriter${industry ? ` specializing in the ${industry} industry` : ''}.
     Write a ${tone?.toLowerCase() || 'friendly'}, concise, Google AI Overview–optimized blog post for the topic: "${keyword}".
@@ -22,7 +26,7 @@ const prompt = `
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4',
+      model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: 'You are a helpful AI content assistant.' },
         { role: 'user', content: prompt },
@@ -33,6 +37,7 @@ const prompt = `
 
   const data = await response.json();
   console.log('🔍 OpenAI Response:', data); // Log for debugging
+  console.log("📝 Final prompt:", prompt);
 
   if (!response.ok) {
     console.error("❌ OpenAI API error:", data.error?.message || data);
