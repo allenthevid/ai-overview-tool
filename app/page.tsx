@@ -150,23 +150,24 @@ export default function Home() {
       {output && (
         <>
           <div className="mt-6 whitespace-pre-wrap bg-gray-100 p-4 rounded text-black">
-            {output}
+            <div dangerouslySetInnerHTML={{ __html: output }} />
           </div>
 
-          <button
-            className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
-            onClick={() => {
-              const blob = new Blob([output], { type: 'text/plain' });
-              const link = document.createElement('a');
-              link.href = URL.createObjectURL(blob);
-              link.download = `${keyword || 'ai-content'}.txt`;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-          >
-            Export to .txt
-          </button>
+          <div className="flex gap-2 mt-4">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={handleCopy}
+            >
+              {copied ? 'Copied!' : 'Copy to Clipboard'}
+            </button>
+
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded"
+              onClick={handleExport}
+            >
+              Export to .txt
+            </button>
+          </div>
         </>
       )}
     </main>
