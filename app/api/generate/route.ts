@@ -9,15 +9,22 @@ export async function POST(req: NextRequest) {
 
 
 const prompt = `
-    You are an expert SEO copywriter${industry ? ` specializing in the ${industry} industry` : ''}.
-    Write a ${tone?.toLowerCase() || 'friendly'}, concise, Google AI Overview–optimized blog post for the topic: "${keyword}".
+  You are an expert SEO copywriter${industry ? ` specializing in the ${industry} industry` : ''}.
+  Write a ${tone?.toLowerCase() || 'friendly'}, concise blog post optimized for Google's AI Overviews for the topic: "${keyword}".
 
-    Instructions:
-    - Start with a direct summary (1–2 sentences)
-    - Use subheadings (H2) and bullet points
-    - Write clearly and factually using terminology appropriate to ${industry || 'general audiences'}
-    - End with a final summary
-    `;
+  Output only raw HTML that is ready to be pasted into a WordPress post editor.
+
+  Instructions:
+  - Do NOT include <!DOCTYPE>, <html>, <head>, or <body> tags.
+  - Begin with a <p> summary (1–2 sentences).
+  - Use <h2> tags for section headings.
+  - Use <p> tags for supporting content.
+  - Do not include bullet points, markdown, or any instructional text.
+  - Write clearly and factually using terms appropriate for ${industry || 'a general audience'}.
+  - End with a brief <p> summary or takeaway.
+
+  Output only clean HTML without any wrapper or metadata.
+`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -46,6 +53,8 @@ const prompt = `
 
   // Extract result
   const result = data.choices?.[0]?.message?.content;
+
+  console.log(result);
 
   if (!result) {
     console.error("❌ No content from OpenAI");
