@@ -83,8 +83,8 @@ export default function Home() {
             className="w-full p-2 border rounded mb-4 bg-black"
           >
             <option value="Friendly">Friendly</option>
+            <option value="Expert">Expert</option>
             <option value="Formal">Formal</option>
-            <option value="Professional">Professional</option>
             <option value="Technical">Technical</option>
             <option value="Persuasive">Persuasive</option>
             <option value="Conversational">Conversational</option>
