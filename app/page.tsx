@@ -1,20 +1,30 @@
-// app/page.tsx or pages/index.tsx (depending on your Next.js version)
-
 'use client';
 
 import { useState } from 'react';
 
+type AuditCheck = {
+  label: string;
+  passed: boolean;
+  detail: string;
+};
+
+type ContentAudit = {
+  score: number;
+  verdict: string;
+  checks: AuditCheck[];
+  notes: string[];
+};
+
 export default function Home() {
-  
   const [keyword, setKeyword] = useState('');
   const [output, setOutput] = useState('');
+  const [audit, setAudit] = useState<ContentAudit | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [tone, setTone] = useState('Friendly');
   const [industry, setIndustry] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  
 
   const handleCopy = () => {
     navigator.clipboard.writeText(output);
@@ -33,6 +43,8 @@ export default function Home() {
   const handleGenerate = async () => {
     setLoading(true);
     setOutput('');
+    setAudit(null);
+    setError('');
 
     try {
       const res = await fetch('/api/generate', {
@@ -42,18 +54,24 @@ export default function Home() {
       });
 
       const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.result || 'Something went wrong.');
+        return;
+      }
+
       setOutput(data.result);
-      setError('');
+      setAudit(data.audit || null);
     } catch (err) {
       console.error('Error generating content:', err);
-      setOutput('Something went wrong.');
+      setError('Something went wrong.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="max-w-2xl mx-auto p-4">
+    <main className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">AI Overview Content Generator</h1>
 
       <input
@@ -64,7 +82,6 @@ export default function Home() {
         onChange={(e) => setKeyword(e.target.value)}
       />
 
-      {/* 🔘 Advanced Settings Toggle */}
       <button
         onClick={() => setShowAdvanced(!showAdvanced)}
         className="text-sm text-blue-600 underline mb-2"
@@ -72,10 +89,8 @@ export default function Home() {
         {showAdvanced ? 'Hide' : 'Show'} Advanced Settings
       </button>
 
-      {/* 🏭 Industry Selector */}
       {showAdvanced && (
         <>
-          {/* 🎙️ Tone Selector */}
           <label className="block mb-2 font-semibold">Select Tone:</label>
           <select
             value={tone}
@@ -90,7 +105,6 @@ export default function Home() {
             <option value="Conversational">Conversational</option>
           </select>
 
-          {/* 🏭 Industry Selector */}
           <label className="block mb-2 font-semibold">Select Industry:</label>
           <select
             value={industry}
@@ -110,43 +124,49 @@ export default function Home() {
 
       <button
         onClick={handleGenerate}
-        className="bg-blue-600 text-white px-4 py-2 rounded w-full"
-        disabled={loading}
-  >
-        {loading ? (
-          <span className="flex items-center justify-center">
-            <svg
-              className="animate-spin mr-2 h-4 w-4 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              ></path>
-            </svg>
-            Generating...
-          </span>
-        ) : (
-          'Generate'
-        )}
+        className="bg-blue-600 text-white px-4 py-2 rounded w-full disabled:opacity-60"
+        disabled={loading || !keyword.trim()}
+      >
+        {loading ? 'Generating...' : 'Generate and Verify'}
       </button>
 
       {error && (
-        <div className="mt-4 text-red-500 bg-red-100 p-2 rounded">
+        <div className="mt-4 text-red-700 bg-red-100 p-3 rounded">
           {error}
         </div>
       )}
+
+      {audit && (
+        <section className="mt-6 border rounded p-4 bg-white text-black">
+          <div className="flex items-center justify-between gap-4 mb-3">
+            <div>
+              <h2 className="text-lg font-semibold">AI Overview Readiness</h2>
+              <p className="text-sm text-gray-700">{audit.verdict}</p>
+            </div>
+            <div className="text-2xl font-bold">{audit.score}%</div>
+          </div>
+
+          <div className="space-y-2">
+            {audit.checks.map((check) => (
+              <div key={check.label} className="border rounded p-3">
+                <div className="font-medium">
+                  {check.passed ? 'Pass' : 'Needs work'}: {check.label}
+                </div>
+                <p className="text-sm text-gray-700">{check.detail}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 space-y-1">
+            {audit.notes.map((note) => (
+              <p key={note} className="text-xs text-gray-600">
+                {note}
+              </p>
+            ))}
+          </div>
+        </section>
+      )}
+
       {output && (
         <>
           <div className="mt-6 whitespace-pre-wrap bg-gray-100 p-4 rounded text-black">
